@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+from HTMLParser import HTMLParser
+import sys
+import urllib2
+import json
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("book")
+parser.add_argument("verse")
+args = parser.parse_args()
+
+#Change version here. (will add to params later maybe)
+ver='NASB'
+
+#get API key here: https://bibles.org/pages/api/signup
+u='ADD_PRIVATE_API_KEY_HERE'
+p=''
+url='https://bibles.org/v2/search.js?query=' + args.book + '+' + args.verse + '&version=eng-' + ver
+
+# simple wrapper function to encode the username & pass
+def encodeUserData(user, password):
+    return "Basic " + (user + ":" + password).encode("base64").rstrip()
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def strip_tags(html):
+    s = MLStripper()
+    s.feed(html)
+    return s.get_data()
+
+# create the request object and set some headers
+req = urllib2.Request(url)
+req.add_header('Accept', 'application/json')
+# req.add_header("Content-type", "application/x-www-form-urlencoded")
+req.add_header('Authorization', encodeUserData(u, p))
+# make the request and print the results
+res = urllib2.urlopen(req)
+
+#parse data
+# data = json.load(res.read())
+data = json.loads(res.read())
+passages = data['response']['search']['result']['passages']
+
+for n in passages:
+	print strip_tags(n['text'])
+	sys.stdout.write('.')
+
