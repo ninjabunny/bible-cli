@@ -1,22 +1,24 @@
 #!/usr/bin/env python
 from HTMLParser import HTMLParser
-import sys
 import urllib2
 import json
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("book")
-parser.add_argument("verse")
+parser = argparse.ArgumentParser(description='bibles.org query API wrapper CLI by Anderson Tao. All rights are left.')
+parser.add_argument("book", help="Book name. eg: John, Mark, Jude. (or shorthand 'ro', for romans)")
+parser.add_argument("verse", help="Chapter and/or verse. eg: 3:16, 46:9-10, 3")
+parser.add_argument("version", nargs='?', help="OPTIONAL: Bible Version. eg: KJV, NIV, ATV...(DEFAULT=NASB)")
 args = parser.parse_args()
 
 #Change version here. (will add to params later maybe)
 ver='NASB'
+if args.version:
+    ver = args.version
 
 #get API key here: https://bibles.org/pages/api/signup
 u='ADD_PRIVATE_API_KEY_HERE'
 p=''
-url='https://bibles.org/v2/search.js?query=' + args.book + '+' + args.verse + '&version=eng-' + ver
+url='https://bibles.org/v2/search.js?query=' + args.book + '+' + args.verse + '&version=eng-' + ver.upper()
 
 # simple wrapper function to encode the username & pass
 def encodeUserData(user, password):
@@ -50,6 +52,4 @@ data = json.loads(res.read())
 passages = data['response']['search']['result']['passages']
 
 for n in passages:
-	print strip_tags(n['text'])
-	sys.stdout.write('.')
-
+    print strip_tags(n['text'])
